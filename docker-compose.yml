@@ -31,7 +31,7 @@ services:
       - db
       - api
     ports:
-      - "8080:80"
+      - "8070:80"
 
 volumes:
   db_data:

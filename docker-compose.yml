@@ -1,0 +1,38 @@
+services:
+  db:
+    build:
+      context: ./Mosifra-API/.
+      dockerfile: dockerfile_postgres
+    container_name: mosifra_db
+    environment:
+      POSTGRES_DB: sae_db
+      POSTGRES_USER: sae_user
+      POSTGRES_PASSWORD: sae_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./Mosifra-API/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  api:
+    build: ./Mosifra-API/.
+    container_name: mosifra_api
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://sae_user:sae_password@db:5432/sae_db
+    ports:
+      - "8000:8000"
+
+  front:
+    build: ./Mosifra-Front/.
+    container_name: mosifra_front
+    depends_on:
+      - db
+      - api
+    ports:
+      - "8080:80"
+
+volumes:
+  db_data:
+

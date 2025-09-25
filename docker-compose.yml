@@ -14,6 +14,15 @@ services:
       - db_data:/var/lib/postgresql/data
       - ./Mosifra-API/init.sql:/docker-entrypoint-initdb.d/init.sql
 
+  redis:
+    image: redis:latest
+    container_name: mosifra_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --requirepass redis_password
+
   api:
     build: ./Mosifra-API/.
     container_name: mosifra_api
@@ -35,4 +44,4 @@ services:
 
 volumes:
   db_data:
-
+  redis_data:

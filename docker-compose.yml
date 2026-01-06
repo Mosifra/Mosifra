@@ -14,6 +14,32 @@ services:
       - db_data:/var/lib/postgresql/data
       - ./Mosifra-API/init.sql:/docker-entrypoint-initdb.d/init.sql
 
+  mongo:
+    image: mongo:7
+    container_name: mosifra_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./Mosifra-API/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootpassword
+      MONGO_INITDB_DATABASE: file_metadata
+
+  minio:
+    image: minio/minio:latest
+    container_name: mosifra_minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: mosifra
+      MINIO_ROOT_PASSWORD: mosifra123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
   redis:
     image: redis:latest
     container_name: mosifra_redis
@@ -28,8 +54,16 @@ services:
     container_name: mosifra_api
     depends_on:
       - db
+      - mongo
+      - minio
     environment:
       DATABASE_URL: postgres://sae_user:sae_password@db:5432/sae_db
+      
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: mosifra
+      S3_SECRET_KEY: mosifra123
+      S3_BUCKET: documents
+
     ports:
       - "8000:8000"
 
@@ -45,3 +79,5 @@ services:
 volumes:
   db_data:
   redis_data:
+  mongo_data:
+  minio_data:

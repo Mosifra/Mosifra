@@ -15,7 +15,15 @@
       buildInputs = with pkgs; [
         docker
         docker-compose
+        cargo
+        rustc
+        rustfmt
+        clippy
+        rust-analyzer
+        sqls
+        bun
       ];
+      env.RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
 
       shellHook = ''
         # Couleurs pour les messages
@@ -58,6 +66,14 @@
           docker compose up --build -d
         else
           echo -e "''${YELLOW}Aucun fichier docker-compose.yml trouvé.$NC"
+        fi
+
+
+        export PATH=${pkgs.bun}/bin:$PATH
+
+        if [ -f bun.lockb ]; then
+          echo "💨 Installation des dépendances avec Bun…"
+          bun install
         fi
 
         # Lancer Neovide

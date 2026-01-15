@@ -81,6 +81,8 @@
         neovide &
 
         echo -e "''${GREEN}Environnement prêt!$NC"
+        echo -e "''${GREEN}Lancement des logs...!$NC"
+        docker compose logs -f
       '';
     };
   };

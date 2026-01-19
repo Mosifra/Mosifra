@@ -82,7 +82,7 @@
 
         echo -e "''${GREEN}Environnement prêt!$NC"
         echo -e "''${GREEN}Lancement des logs...!$NC"
-        docker compose logs -f mosifra_api mosifra_front
+        docker compose logs -f api front
       '';
     };
   };

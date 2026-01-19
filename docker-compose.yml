@@ -60,7 +60,7 @@ services:
       DATABASE_URL: postgres://sae_user:sae_password@db:5432/sae_db
       MONGO_URL: mongodb://mongo:27017/file_metadata
       JWT_SECRET: ${JWT_SECRET}
-      PORT: ${PORT}
+      API_PORT: ${API_PORT}
       ROCKET_SECRET: ${ROCKET_SECRET}
 
       # MinIO / S3

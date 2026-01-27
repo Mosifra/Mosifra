@@ -30,11 +30,7 @@
 
         echo -e "''${GREEN}=== Environnement de développement (Podman) ===$NC"
 
-        export DOCKER_HOST="unix:///run/user/$UID/podman/podman.sock"
-
         mkdir -p $HOME/.config/containers
-        mkdir -p /run/user/$UID/podman
-
         cat > $HOME/.config/containers/registries.conf <<EOF
         unqualified-search-registries = ["docker.io"]
 
@@ -68,10 +64,6 @@
 
         echo -e "''${GREEN}Configuration Podman créée$NC"
 
-        if ! systemctl --user is-active podman.socket > /dev/null 2>&1; then
-          echo -e "''${YELLOW}Démarrage du socket Podman...$NC"
-          systemctl --user start podman.socket
-
           echo "Attente du démarrage de Podman..."
           for i in {1..30}; do
             if podman info > /dev/null 2>&1; then
@@ -80,9 +72,6 @@
             fi
             sleep 1
           done
-        else
-          echo -e "''${GREEN}Podman socket déjà en cours d'exécution.$NC"
-        fi
 
         alias docker=podman
         alias docker-compose=podman-compose

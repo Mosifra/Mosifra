@@ -20,6 +20,7 @@
         rust-analyzer
         sqls
         bun
+        tmux
       ];
       env.RUST_SRC_PATH = "${pkgs.rust.packages.stable.rustPlatform.rustLibSrc}";
       shellHook = ''
@@ -30,17 +31,13 @@
 
         echo -e "''${GREEN}=== Environnement de développement (Podman) ===$NC"
 
+        # Config Podman
         mkdir -p $HOME/.config/containers
         cat > $HOME/.config/containers/registries.conf <<EOF
         unqualified-search-registries = ["docker.io"]
-
         [[registry]]
         prefix = "docker.io"
         location = "docker.io"
-
-        [[registry]]
-        prefix = "registry.hub.docker.com"
-        location = "registry.hub.docker.com"
         EOF
 
         cat > $HOME/.config/containers/policy.json <<EOF
@@ -64,39 +61,45 @@
 
         echo -e "''${GREEN}Configuration Podman créée$NC"
 
-          echo "Attente du démarrage de Podman..."
-          for i in {1..30}; do
-            if podman info > /dev/null 2>&1; then
-              echo -e "''${GREEN}Podman est prêt!$NC"
-              break
-            fi
-            sleep 1
-          done
-
         alias docker=podman
         alias docker-compose=podman-compose
 
+        # Lancer podman-compose
         if [ -f "docker-compose.yml" ] || [ -f "compose.yaml" ]; then
           echo -e "''${GREEN}Lancement de podman-compose up --build...$NC"
           podman-compose up --build -d
-        else
-          echo -e "''${YELLOW}Aucun fichier docker-compose.yml trouvé.$NC"
         fi
 
         export PATH=${pkgs.bun}/bin:$PATH
         if [ -f bun.lockb ]; then
-          echo "Installation des dépendances avec Bun…"
+          echo "💨 Installation des dépendances avec Bun…"
           bun install
         fi
 
-        echo -e "''${GREEN}Lancement de Neovide...$NC"
-        neovide &
+        SESSION_NAME="podman-dev"
+
+        if ! tmux has-session -t $SESSION_NAME 2>/dev/null; then
+          # Window 0: Neovide
+          tmux new-session -d -s $SESSION_NAME -n "editor"
+          tmux send-keys -t $SESSION_NAME:0 "neovide" C-m
+
+          # Window 1: Shell principal + logs
+          tmux new-window -t $SESSION_NAME:1 -n "dev"
+          tmux send-keys -t $SESSION_NAME:1 "echo 'Shell principal. Commandes utiles :'" C-m
+          tmux send-keys -t $SESSION_NAME:1 "echo '  podman-compose ps              - État des conteneurs'" C-m
+          tmux send-keys -t $SESSION_NAME:1 "echo '  podman-compose logs -f api     - Logs API'" C-m
+          tmux send-keys -t $SESSION_NAME:1 "echo '  podman-compose logs -f front   - Logs front'" C-m
+          tmux send-keys -t $SESSION_NAME:1 "echo '  podman-compose restart api     - Redémarrer un service'" C-m
+
+          # Window 2: Logs
+          tmux new-window -t $SESSION_NAME:2 -n "logs"
+          tmux send-keys -t $SESSION_NAME:2 "sleep 2 && podman-compose logs -f" C-m
+
+          tmux select-window -t $SESSION_NAME:1
+        fi
 
         echo -e "''${GREEN}Environnement prêt!$NC"
-
-        sleep 3
-
-        echo -e "''${GREEN}Pour lancer les logs : podman-compose logs -f <nom-conteneur-1> <nom-conteneur-2>!$NC"
+        tmux attach-session -t $SESSION_NAME
       '';
     };
   };

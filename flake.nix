@@ -107,13 +107,8 @@
           # Maintenant envoyer les commandes aux fenêtres créées
           tmux send-keys -t $SESSION_NAME:0 "neovide" C-m
 
-          tmux send-keys -t $SESSION_NAME:1 "echo 'Shell principal. Commandes utiles :'" C-m
-          tmux send-keys -t $SESSION_NAME:1 "echo '  podman-compose ps              - État des conteneurs'" C-m
-          tmux send-keys -t $SESSION_NAME:1 "echo '  podman-compose logs -f api     - Logs API'" C-m
-          tmux send-keys -t $SESSION_NAME:1 "echo '  podman-compose logs -f front   - Logs front'" C-m
-          tmux send-keys -t $SESSION_NAME:1 "echo '  podman-compose restart api     - Redémarrer un service'" C-m
 
-          tmux send-keys -t $SESSION_NAME:2 "sleep 2 && podman-compose logs -f api front --color" C-m
+          tmux send-keys -t $SESSION_NAME:2 "sleep 2 && podman-compose logs -f api front " C-m
 
           # Sélectionner la fenêtre dev (1) par défaut
           tmux select-window -t $SESSION_NAME:1

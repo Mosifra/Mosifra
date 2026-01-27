@@ -29,6 +29,22 @@
         RED='\033[0;31m'
         NC='\033[0m'
 
+        # Configuration tmux avec souris
+        cat > $HOME/.tmux.conf <<EOF
+        # Activer la souris
+        set -g mouse on
+
+        # Numérotation des fenêtres à partir de 1
+        set -g base-index 0
+
+        # Split panes avec | et -
+        bind | split-window -h
+        bind - split-window -v
+
+        # Recharger config
+        bind r source-file ~/.tmux.conf
+        EOF
+
         echo -e "''${GREEN}=== Environnement de développement (Podman) ===$NC"
 
         # Config Podman
@@ -72,29 +88,34 @@
 
         export PATH=${pkgs.bun}/bin:$PATH
         if [ -f bun.lockb ]; then
-          echo "💨 Installation des dépendances avec Bun…"
+          echo "Installation des dépendances avec Bun…"
           bun install
         fi
 
         SESSION_NAME="podman-dev"
 
         if ! tmux has-session -t $SESSION_NAME 2>/dev/null; then
-          # Window 0: Neovide
+          # Créer la session avec la première fenêtre (editor)
           tmux new-session -d -s $SESSION_NAME -n "editor"
+
+          # Window 1: Shell principal
+          tmux new-window -t $SESSION_NAME:1 -n "dev"
+
+          # Window 2: Logs
+          tmux new-window -t $SESSION_NAME:2 -n "logs"
+
+          # Maintenant envoyer les commandes aux fenêtres créées
           tmux send-keys -t $SESSION_NAME:0 "neovide" C-m
 
-          # Window 1: Shell principal + logs
-          tmux new-window -t $SESSION_NAME:1 -n "dev"
           tmux send-keys -t $SESSION_NAME:1 "echo 'Shell principal. Commandes utiles :'" C-m
           tmux send-keys -t $SESSION_NAME:1 "echo '  podman-compose ps              - État des conteneurs'" C-m
           tmux send-keys -t $SESSION_NAME:1 "echo '  podman-compose logs -f api     - Logs API'" C-m
           tmux send-keys -t $SESSION_NAME:1 "echo '  podman-compose logs -f front   - Logs front'" C-m
           tmux send-keys -t $SESSION_NAME:1 "echo '  podman-compose restart api     - Redémarrer un service'" C-m
 
-          # Window 2: Logs
-          tmux new-window -t $SESSION_NAME:2 -n "logs"
-          tmux send-keys -t $SESSION_NAME:2 "sleep 2 && podman-compose logs -f" C-m
+          tmux send-keys -t $SESSION_NAME:2 "sleep 2 && podman-compose logs -f api front" C-m
 
+          # Sélectionner la fenêtre dev (1) par défaut
           tmux select-window -t $SESSION_NAME:1
         fi
 
